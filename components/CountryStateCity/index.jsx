@@ -8,7 +8,7 @@ import useOptionsStore from "../../store/useOptionsStore";
 import { getFlag } from "../../utils";
 import { AutocompleteInput } from "../FormComponents";
 import engine from "./engine";
-import Image from "next/Image";
+import Image from "next/image";
 
 function CountryStateCity() {
   const { country, state, city, setData } = useDataStore();
