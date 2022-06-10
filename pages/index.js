@@ -2,6 +2,7 @@ import {
   AppBar,
   Avatar,
   Button,
+  CircularProgress,
   LinearProgress,
   ListItem,
   ListItemAvatar,
@@ -16,7 +17,7 @@ import { find, isEmpty, map, omit } from "lodash";
 import Head from "next/head";
 import Image from "next/image";
 import { useRouter } from "next/router";
-import { useEffect, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { useIsFetching } from "react-query";
 import { useSelf } from "../adapters";
 import CountryStateCity from "../components/CountryStateCity";
@@ -31,20 +32,14 @@ export default function Home() {
   const { country, setData } = useDataStore();
   const isFetching = useIsFetching();
   const { logout, user } = useAuthStore();
-
+  const router = useRouter();
+  const [isLoading, setLoading] = useState(false);
   const { data: { data: selfData } = {} } = useSelf({
     options: {
       enabled: isEmpty(country) && !isEmpty(user),
       staleTime: Infinity,
     },
   });
-
-  const router = useRouter();
-
-  // useEffect(() => {
-  //   router.push('/login', undefined, { shallow: true })
-  //   // router.push("/login");
-  // }, []);
 
   useEffect(() => {
     if (!isEmpty(selfData) && !isEmpty(options)) {
@@ -58,8 +53,9 @@ export default function Home() {
   useEffect(() => {
     if (isEmpty(user)) {
       router.push("/login", undefined, { shallow: true });
-    } else
-      axios("/db.json").then((r) => {
+    } else setLoading(true);
+    axios("/db.json")
+      .then((r) => {
         setOptions(
           map(
             r.data,
@@ -82,6 +78,9 @@ export default function Home() {
             })
           )
         );
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [user]);
 
@@ -145,7 +144,13 @@ export default function Home() {
             }}
             elevation={0}
           >
-            <CountryStateCity />
+            {isLoading ? (
+              <Stack py={2} alignItems="center" justifyContent="center">
+                <CircularProgress />
+              </Stack>
+            ) : (
+              <CountryStateCity />
+            )}
 
             {/* {createElement(Results, {
               suppressHydrationWarning: true,
